@@ -15,43 +15,73 @@ int length (node *ptr)				     //Length of linked list
 	return count;						//returns int value for length of linked list
 }
 
-node * mergelists(node *head1,node *head2) /*
+node * mergelists(node *head1,node *head2, int index) /*
 											Accepts 2 pointers,each pointing to one pre-sorted list,	
 											and combines these into one list 
 										   */
 {		
+		node *front=NULL;
 		node * ptr=NULL;					
-		list=temp;
 		while(head1!=NULL && head2!=NULL)	//Iterates through both lists until one reaches end
 		{
-			
-			if (head1->duration<head2->data)	//Check if list1 head is greater than list2
+			while(head1->category[index]=="-1\0")
 			{
-				if(ptr==NULL)					//if ptr is empty, make it the root of list
+				if (front==NULL)
 				{
-					ptr=head1;
+					front=head1;
+					ptr=front;
+				}
+				else
+				{
+					ptr->next=head1;
+					ptr=ptr->next;
+				}
+				head1=head1->next;
+			}
+			while (head2->category[index]=="-1\0")
+			{
+				if (front==NULL)
+				{
+					front=head2;
+					ptr=front;
+				}
+				else
+				{
+					ptr->next=head2;
+					ptr=ptr->next;
+				}
+				head2=head2->next;
+			}
+			if (strcmp(head1->category[index],head2->category[index])>=0)	//Check if list1 head is greater than list2
+			{
+				if(front==NULL)					//if ptr is empty, make it the root of list
+				{
+					front=head2;
+					ptr=front;
 				}
 				else							/* otherwise, make ptr point to the next node 
+													and then set it equal to that next node */
+				{
+					ptr->next=head2;
+					ptr=ptr->next;
+					
+				}
+				head2=head2->next;				//move head1 over one node
+			}
+			else							//If head1>=head2 then...
+			{
+				if(front==NULL)				//if ptr is empty, make it the root of list
+				{
+					front=head1;
+					ptr=front;
+				}
+				else						/* otherwise, make ptr point to the next node 
 													and then set it equal to that next node */
 				{
 					ptr->next=head1;
 					ptr=ptr->next;
 				}
-				head1=head1->next;				//move head1 over one node
-			}
-			else							//If head1>=head2 then...
-			{
-				if(ptr==NULL)				//if ptr is empty, make it the root of list
-				{
-					ptr=head2;
-				}
-				else						/* otherwise, make ptr point to the next node 
-													and then set it equal to that next node */
-				{
-					ptr->next=head2;
-					ptr=list->next;
-				}
-				head2=head2->next;
+				head1=head1->next;
 			}
 				
 		}
@@ -59,9 +89,10 @@ node * mergelists(node *head1,node *head2) /*
 		{
 			while(head2!=NULL)
 			{	
-				if (ptr==NULL)
+				if (front==NULL)
 				{
-					ptr=head2;
+					front=head2;
+					ptr=front;
 				}
 				else
 				{
@@ -74,9 +105,10 @@ node * mergelists(node *head1,node *head2) /*
 		{
 			while (head1!=NULL)
 			{
-				if (ptr==NULL)
+				if (front==NULL)
 				{
-					ptr=head1;
+					front=head1;
+					ptr=front;
 					
 				}
 				else
@@ -86,19 +118,21 @@ node * mergelists(node *head1,node *head2) /*
 				}
 			}
 		}
-		return ptr;							//returns node pointer to combined, sorted list of head1 and head2
+		return front;							//returns node pointer to combined, sorted list of head1 and head2
 }
-node * mergesort (node *head)				/*
+node * mergesort (node *head,int ind)				/*
 												Heart of mergesort algorithm. I plan to call the merge function
 												within this function. (Recursive)
 												Method also calls length function to know length of linked list
 											*/	
 {
-	node *final=NULL;
-	node *half1=NULL;
-	node *half2=NULL;
+	int index=ind;
 	int dist=length(head);
 	int mid=(dist/2);
+	int i;
+	node *ptr=head;
+	node *half1=head;
+	node *half2=NULL;
 	if (dist==1)
 	{
 		return head;
@@ -106,49 +140,25 @@ node * mergesort (node *head)				/*
 	else									
 	{		
 								//split list
-		int i;
-		for (i=0;i<dist;i++)	/* assigns half of the current linked list to one node pointer and 
+		for (i=1;i<=dist;i++)	/* assigns half of the current linked list to one node pointer and 
 									the rest to the other node pointer. I count from one to the total
 									amount of nodes, and I assign the first half to the first variable
 									and second half to second variable.
 								*/	
 		{
-			if (i<=mid)			/*mid(half of total number of node) is used as upper bound to amount that 
-								  is assigned to the first of two lists.
-								  
-								  unfortunately, this may be the weakest portion of the sorting. I am still trying to 
-								  find a way to split the list into two pieces to be arguments
-								  for the recursive part later
-								*/
+			if(i==mid)
 			{
-				if (half1==NULL)
-				{
-					half1=head;
-				}
-				else
-				{
-					half1->next=head;
-				}
-			}
-			else
-			{
-				if (half2==NULL)
-				{
-					half2=head;
-				}
-				else
-				{
-					half2->next=head;
-				}
-			}
-			head=head->next;
-			
+				half2=ptr->next;	
+				ptr->next=NULL;			
+			}									
+			ptr=ptr->next;							
 		}			
+			
+	}			
 		
 		
-		half1=mergesort(half1);
-		half2=mergesort(half2);
-	}
-	final=mergelists(half1,half2);
-	return final;
+		half1=mergesort(half1,index);
+		half2=mergesort(half2,index);
+	
+	return mergelists(half1,half2,index);
 }
